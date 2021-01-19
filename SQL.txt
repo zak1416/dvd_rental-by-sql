@@ -1,0 +1,154 @@
+Q1
+{
+
+SELECT Date_trunc('month', p.payment_date) AS payment_mon,
+       c.last_name                         AS full_name,
+       Count(*)                            AS permonth,
+       Sum(p.amount) AS total_payment
+FROM   customer c 
+       JOIN payment p 
+         ON c.customer_id = p.customer_id 
+WHERE  p.payment_date BETWEEN '2007-01-01' AND '2007-12-31' 
+GROUP  BY 1, 
+          2 
+ORDER  BY 4 DESC 
+LIMIT  5
+}
+
+
+
+
+
+Q2{
+
+SELECT category, SUM(rental_count) AS total_rentals
+
+FROM (SELECT f.title, c.name AS category, COUNT(r.rental_id) AS rental_count
+
+      FROM category c
+
+      JOIN film_category fc
+
+        ON c.category_id = fc.category_id
+
+      JOIN film f
+
+        ON f.film_id = fc.film_id
+
+      JOIN inventory i
+
+        ON f.film_id = i.film_id
+
+      JOIN rental r
+
+        ON i.inventory_id = r.inventory_id
+
+      WHERE c.name IN ('Animation', 'Children', 'Classics', 'Comedy', 'Family', 'Music')
+
+      GROUP BY 1, 2) fam_movies
+
+GROUP BY 1
+
+
+}
+Q3{
+
+WITH base AS 
+
+    (SELECT category, SUM(rental_count) AS total_rentals
+
+     FROM (SELECT f.title, c.name AS category, COUNT(r.rental_id) AS rental_count
+
+           FROM category c
+
+             JOIN film_category fc
+
+               ON c.category_id = fc.category_id
+
+             JOIN film f
+
+               ON f.film_id = fc.film_id
+
+             JOIN inventory i
+
+               ON f.film_id = i.film_id
+
+             JOIN rental r
+
+               ON i.inventory_id = r.inventory_id
+
+           GROUP BY 1, 2) fam_movies
+
+     GROUP BY 1)
+
+SELECT AVG(total_rentals)
+
+FROM base
+}
+
+
+
+
+
+Q4{
+
+
+SELECT category, SUM(rental_duration)
+FROM(
+SELECT f.title,
+
+       c.name                                      AS category,
+
+       f.rental_duration,
+
+       NTILE(4) OVER(ORDER BY f.rental_duration)   AS quartile
+
+FROM category c
+
+    JOIN film_category fc
+
+      ON c.category_id = fc.category_id
+
+    JOIN film f
+
+      ON f.film_id = fc.film_id
+
+WHERE c.name IN ('Animation', 'Children', 'Classics', 'Comedy', 'Family', 'Music'))T1 
+GROUP BY 1
+}
+
+
+Q5{
+SELECT co.country,
+
+      COUNT(customer_id)                   AS customer_n,
+
+      CASE WHEN COUNT(customer_id) < 15 THEN 'low'
+
+           WHEN COUNT(customer_id) < 30 THEN 'medium'
+
+           WHEN COUNT(customer_id) < 45 THEN 'high'
+
+           ELSE 'very high' END            AS customer_level
+
+FROM country co
+
+     JOIN city ci
+
+       ON co.country_id = ci.country_id
+
+     JOIN address a
+
+       ON ci.city_id = a.city_id
+
+     JOIN customer cu
+
+       ON a.address_id = cu.address_id
+
+GROUP BY 1
+
+ORDER BY 2 DESC
+}
+
+
+
